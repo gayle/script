@@ -56,34 +56,28 @@ def call_stash_api(url, params)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = (uri.scheme == "https")
   response = http.request(req)
-
-  json_response = JSON.parse(response.body)
-  #binding.pry
-  json_response
-
+  JSON.parse(response.body)
 end
 
 def get_prs(start)
-  # TODO make some of these commmand line args
   url = "#{BASE_URL}/#{@repo}/pull-requests"
   params = {'state' => 'MERGED', 'order' => 'NEWEST', 'limit' => NUM_RESULTS_AT_A_TIME, 'start' =>  start}
   call_stash_api(url, params)
 end
 
 def get_commits_in_pr(pr_id)
-
+  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/commits"
+  params = {}
+  commits = call_stash_api(url, params)
+  commits["values"]
 end
 
 def pr_containing_commit(pull_requests, commit_hash)
-
-
-  #binding.pry
-  # pull_requests.each do |pr|
-  #   url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr["id"]}/commits"
-  #   params = {}
-  # end
-
-
+  pull_requests.each do |pr|
+    commits = get_commits_in_pr(pr["id"])
+    commits_containing_hash = commits.select{|c| c["id"] == commit_hash}
+    return pr if commits_containing_hash.first # .first will be nil if array is empty
+  end
 end
 
 # ===================================
@@ -119,7 +113,6 @@ end
 if @pr.nil?
   puts "commit '#{@commit}' not found in any pr"
 else
-  #binding.pry
   puts "commit '#{@commit}' was found in '#{@repo}' pull request ##{@pr["id"]}"
 end
 
