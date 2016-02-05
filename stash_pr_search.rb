@@ -70,7 +70,7 @@ def call_stash_api(url, params)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = (uri.scheme == "https")
   response = http.request(req)
-  json_response = JSON.parse(response.body)
+  json_response = JSON.parse(response.body, :max_nesting => 100)
 
   if json_response["errors"]
     puts "ERRORS: #{json_response.inspect}"
