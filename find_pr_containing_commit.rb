@@ -13,6 +13,7 @@ require 'pry'
 # ===================================
 # CONSTANTS
 # ===================================
+BASE_URL = 'https://stash-prod2.us.jpmchase.net:8443/rest/api/1.0/projects/RSAM/repos'
 NUM_RESULTS_AT_A_TIME = 10
 
 # ===================================
@@ -46,13 +47,7 @@ end
 # HELPERS
 # ===================================
 
-def get_prs(start)
-  # TODO make some of these commmand line args
-  base_url = 'https://stash-prod2.us.jpmchase.net:8443/rest/api/1.0/projects/RSAM/repos'
-  type = 'pull-requests'
-  url = "#{base_url}/#{@repo}/#{type}"
-  params = {'state' => 'MERGED', 'order' => 'NEWEST', 'limit' => NUM_RESULTS_AT_A_TIME, 'start' =>  start}
-
+def call_stash_api(url, params)
   uri = URI(url)
   uri.query = URI.encode_www_form(params)
   req = Net::HTTP::Get.new(uri.request_uri, {'Content-Type' => 'application/json', })
@@ -65,11 +60,30 @@ def get_prs(start)
   json_response = JSON.parse(response.body)
   #binding.pry
   json_response
+
+end
+
+def get_prs(start)
+  # TODO make some of these commmand line args
+  url = "#{BASE_URL}/#{@repo}/pull-requests"
+  params = {'state' => 'MERGED', 'order' => 'NEWEST', 'limit' => NUM_RESULTS_AT_A_TIME, 'start' =>  start}
+  call_stash_api(url, params)
+end
+
+def get_commits_in_pr(pr_id)
+
 end
 
 def pr_containing_commit(pull_requests, commit_hash)
-  binding.pry
-  puts "HI"
+
+
+  #binding.pry
+  # pull_requests.each do |pr|
+  #   url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr["id"]}/commits"
+  #   params = {}
+  # end
+
+
 end
 
 # ===================================
@@ -87,12 +101,6 @@ end
 # end until keep_going != "y"
 
 
-pull_requests1 = get_prs(0)
-pull_requests2 = get_prs(10)
-pull_requests3 = get_prs(20)
-pull_requests4 = get_prs(30)
-
-
 # Note in Ruby 2 you can use: "1.step(NUM_RESULTS_AT_A_TIME) do |i|" because infinity is the default
 0.step(Float::INFINITY, NUM_RESULTS_AT_A_TIME) do |f|
   pull_requests = get_prs(f.to_i)
@@ -104,15 +112,15 @@ pull_requests4 = get_prs(30)
     break
   end
   # binding.pry
-  pr = pr_containing_commit(pull_requests["values"], @commit)
-  break if ((pull_requests["size"] == 0) or pr)
+  @pr = pr_containing_commit(pull_requests["values"], @commit)
+  break if ((pull_requests["size"] == 0) or @pr)
 end
 
-if pr.nil?
+if @pr.nil?
   puts "commit '#{@commit}' not found in any pr"
 else
-  binding.pry
-  puts "commit '#{@commit}' was found"
+  #binding.pry
+  puts "commit '#{@commit}' was found in '#{@repo}' pull request ##{@pr["id"]}"
 end
 
 
@@ -120,4 +128,5 @@ end
 # RESPONSE
 # ===================================
 #puts "Response: #{pull_requests}..."
+
 
