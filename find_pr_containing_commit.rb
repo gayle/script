@@ -74,6 +74,7 @@ end
 
 def pr_containing_commit(pull_requests, commit_hash)
   pull_requests.each do |pr|
+    puts "checking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     commits = get_commits_in_pr(pr["id"])
     commits_containing_hash = commits.select{|c| c["id"] == commit_hash}
     return pr if commits_containing_hash.first # .first will be nil if array is empty
@@ -98,14 +99,11 @@ end
 # Note in Ruby 2 you can use: "1.step(NUM_RESULTS_AT_A_TIME) do |i|" because infinity is the default
 0.step(Float::INFINITY, NUM_RESULTS_AT_A_TIME) do |f|
   pull_requests = get_prs(f.to_i)
-
-  # TODO print the created at date, so a person can CtrlC whenever they want
-
   if pull_requests["errors"]
     puts "ERRORS: #{pull_requests.inspect}"
     break
   end
-  # binding.pry
+
   @pr = pr_containing_commit(pull_requests["values"], @commit)
   break if ((pull_requests["size"] == 0) or @pr)
 end
@@ -121,5 +119,4 @@ end
 # RESPONSE
 # ===================================
 #puts "Response: #{pull_requests}..."
-
 
