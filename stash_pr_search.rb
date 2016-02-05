@@ -61,7 +61,6 @@ end
 # ===================================
 # HELPERS
 # ===================================
-
 def call_stash_api(url, params)
   uri = URI(url)
   uri.query = URI.encode_www_form(params)
@@ -90,6 +89,9 @@ def get_prs(start)
   call_stash_api(url, params)
 end
 
+# ===================================
+# COMMITS
+# ===================================
 def get_commits_in_pr(pr_id)
   url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/commits"
   params = {}
@@ -99,11 +101,11 @@ end
 
 def pr_containing_commit(pull_requests, commit_hash)
   pull_requests.each do |pr|
-    #binding.pry if pr["id"] == 24
-    puts "checking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
+    print "\rchecking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     commits = get_commits_in_pr(pr["id"])
     commits_containing_hash = commits.select{|c| c["id"].start_with? commit_hash}
     @found = pr if commits_containing_hash.first # .first will be nil if array is empty
+    break if @found
   end
 
   if @found
@@ -114,6 +116,10 @@ def pr_containing_commit(pull_requests, commit_hash)
   @found
 end
 
+
+# ===================================
+# COMMENTS
+# ===================================
 def get_comments_in_pr(pr_id)
   url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/activities"
   params = {}
@@ -122,13 +128,12 @@ def get_comments_in_pr(pr_id)
   comment_activities.collect{|c| c["comment"]["text"]}
 end
 
-
 def pr_containing_comment(pull_requests, comment_text)
   pull_requests.each do |pr|
-    puts "checking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
+    print "\rchecking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     comments = get_comments_in_pr(pr["id"])
-    #binding.pry if pr["id"] == 25
     @found = pr if comments.any?{|c| c.include? comment_text}
+    break if @found
     # TODO do I really want to just find the FIRST one, or returna  list of ones?
   end
 
