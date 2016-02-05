@@ -173,7 +173,7 @@ end
     @pr = pr_containing_comment(pull_requests["values"], @value)
   end
 
-  break if ((pull_requests["size"] == 0) or @pr)
+  break if (pull_requests["size"] == 0)
 end
 
 puts "\n\n#{@search_type} '#{@value}' not found in any '#{@repo}' pull request" if @pr.nil?
