@@ -155,7 +155,9 @@ end
 if @pr.nil?
   puts "#{@search_type} '#{@value}' not found in any '#{@repo}' pull request"
 else
-  puts "#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@pr["id"]}"
+  # https://stash-prod2.us.jpmchase.net:8443/projects/RSAM/repos/keon-api/pull-requests/25
+  pr_url = "https://stash-prod2.us.jpmchase.net:8443/projects/RSAM/repos/#{@repo}/pull-requests/#{@pr["id"]}"
+  puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@pr["id"]}\n#{pr_url}\n\n"
 end
 
 
