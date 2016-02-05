@@ -129,19 +129,22 @@ def get_comments_in_pr(pr_id)
 end
 
 def pr_containing_comment(pull_requests, comment_text)
+  any_found = nil
+
   pull_requests.each do |pr|
+    found = nil
     print "\rchecking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     comments = get_comments_in_pr(pr["id"])
-    @found = pr if comments.any?{|c| c.include? comment_text}
-
-    if @found
-      url = pr_url(@repo, @found)
-      puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@found["id"]}"
+    found = pr if comments.any?{|c| c.include? comment_text}
+    if found
+      any_found = pr
+      url = pr_url(@repo, found)
+      puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{found["id"]}"
       puts "#{url}\n\n"
     end
   end
 
-  @found # will return nil if none were ever found
+  any_found # will return nil if none were ever found
 end
 
 
