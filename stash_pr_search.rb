@@ -71,7 +71,13 @@ def call_stash_api(url, params)
   http = Net::HTTP.new(uri.host, uri.port)
   http.use_ssl = (uri.scheme == "https")
   response = http.request(req)
-  JSON.parse(response.body)
+  json_response = JSON.parse(response.body)
+
+  if json_response["errors"]
+    puts "ERRORS: #{json_response.inspect}"
+    exit
+  end
+  json_response
 end
 
 def get_prs(start)
@@ -97,6 +103,28 @@ def pr_containing_commit(pull_requests, commit_hash)
   nil
 end
 
+def get_comments_in_pr(pr_id)
+  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/comments"
+  params = {}
+  comments = call_stash_api(url, params)
+  binding.pry
+  comments["values"]
+end
+
+
+def pr_containing_comment(pull_requests, comment_text)
+  pull_requests.each do |pr|
+    puts "checking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
+    comments = get_comments_in_pr(pr["id"])
+    binding.pry
+
+    commits_containing_hash = comments.select{|c| c["id"].start_with? comment_text}
+    return pr if commits_containing_hash.first # .first will be nil if array is empty
+  end
+  nil
+end
+
+
 # ===================================
 # RUN
 # ===================================
@@ -115,14 +143,11 @@ end
 # Note in Ruby 2 you can use: "1.step(NUM_RESULTS_AT_A_TIME) do |i|" because infinity is the default
 0.step(Float::INFINITY, NUM_RESULTS_AT_A_TIME) do |f|
   pull_requests = get_prs(f.to_i)
-  if pull_requests["errors"]
-    puts "ERRORS: #{pull_requests.inspect}"
-    exit
-  end
 
   if @search_type == "commit"
     @pr = pr_containing_commit(pull_requests["values"], @value)
   elsif @search_type == "comment"
+    @pr = pr_containing_comment(pull_requests["values"], @value)
   end
 
   break if ((pull_requests["size"] == 0) or @pr)
@@ -139,5 +164,4 @@ end
 # RESPONSE
 # ===================================
 #puts "Response: #{pull_requests}..."
-
 
