@@ -104,11 +104,11 @@ def pr_containing_commit(pull_requests, commit_hash)
 end
 
 def get_comments_in_pr(pr_id)
-  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/comments"
+  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/activities"
   params = {}
-  comments = call_stash_api(url, params)
-  binding.pry
-  comments["values"]
+  activities = call_stash_api(url, params)
+  comment_activities = activities["values"].select{|a| a["action"] == "COMMENTED"}
+  comment_activities.collect{|c| c["comment"]["text"]}
 end
 
 
@@ -116,10 +116,9 @@ def pr_containing_comment(pull_requests, comment_text)
   pull_requests.each do |pr|
     puts "checking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     comments = get_comments_in_pr(pr["id"])
-    binding.pry
-
-    commits_containing_hash = comments.select{|c| c["id"].start_with? comment_text}
-    return pr if commits_containing_hash.first # .first will be nil if array is empty
+    #binding.pry if pr["id"] == 25
+    return pr if comments.any?{|c| c.include? comment_text}
+    # TODO do I really want to just find the FIRST one, or returna  list of ones?
   end
   nil
 end
