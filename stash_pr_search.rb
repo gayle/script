@@ -1,10 +1,15 @@
 # ===================================
 # USAGE:
-# find_pr_containing_commit.rb # you will be prompted for repo and commit hash
-# find_pr_containing_commit.rb <repo> <commit_hash>
+# ruby stash_pr_search.rb # you will be prompted for information
+# ruby stash_pr_search.rb <repo> <comment|commit> <value>
 # repo = rsam|self_service|rsam_core, etc
 #
+# EXAMPLES:
+# ruby stash_pr_search.rb rsam comment 'this is what I had to say'
+# ruby stash_pr_search.rb keon-api commit 545dab7e4ef099ccb2c469eb0f148b16d3e8abff
+# ruby stash_pr_search.rb self_service commit ef0c9ebd3f
 # ===================================
+
 
 require 'json'
 require 'net/http'
@@ -76,9 +81,10 @@ def pr_containing_commit(pull_requests, commit_hash)
   pull_requests.each do |pr|
     puts "checking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     commits = get_commits_in_pr(pr["id"])
-    commits_containing_hash = commits.select{|c| c["id"] == commit_hash}
+    commits_containing_hash = commits.select{|c| c["id"].start_with? commit_hash}
     return pr if commits_containing_hash.first # .first will be nil if array is empty
   end
+  nil
 end
 
 # ===================================
@@ -109,7 +115,7 @@ end
 end
 
 if @pr.nil?
-  puts "commit '#{@commit}' not found in any pr"
+  puts "commit '#{@commit}' not found in any PR"
 else
   puts "commit '#{@commit}' was found in '#{@repo}' pull request ##{@pr["id"]}"
 end
