@@ -74,7 +74,7 @@ def call_stash_api(url, params)
 
   if json_response["errors"]
     puts "ERRORS: #{json_response.inspect}"
-    exit
+    return {}
   end
   json_response
 end
@@ -124,7 +124,7 @@ def get_comments_in_pr(pr_id)
   url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/activities"
   params = {}
   activities = call_stash_api(url, params)
-  comment_activities = activities["values"].select{|a| a["action"] == "COMMENTED"}
+  comment_activities = activities.empty? ? {} : activities["values"].select{|a| a["action"] == "COMMENTED"}
   comment_activities.collect{|c| c["comment"]["text"]}
 end
 
