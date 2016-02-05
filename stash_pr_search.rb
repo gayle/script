@@ -38,14 +38,24 @@ end
 # ===================================
 # ARGS
 # ===================================
-if ARGV.length == 2
+if ARGV.length == 3
   @repo = ARGV[0]
-  @commit = ARGV[1]
+  @search_type = ARGV[1]
+  @value = ARGV[2]
 else
   print "which repo do you want to look in? "
   @repo = gets.chomp
-  print "which commit hash are you looking for? "
-  @commit = gets.chomp
+
+  print "what do you want to search for (commit|comment)? "
+  @search_type = gets.chomp
+
+  print "what value are you looking for? "
+  @value = gets.chomp
+end
+
+if !["commit", "comment"].include? @search_type
+  puts "unknown search type '#{@search_type}'"
+  exit
 end
 
 # ===================================
@@ -107,17 +117,21 @@ end
   pull_requests = get_prs(f.to_i)
   if pull_requests["errors"]
     puts "ERRORS: #{pull_requests.inspect}"
-    break
+    exit
   end
 
-  @pr = pr_containing_commit(pull_requests["values"], @commit)
+  if @search_type == "commit"
+    @pr = pr_containing_commit(pull_requests["values"], @value)
+  elsif @search_type == "comment"
+  end
+
   break if ((pull_requests["size"] == 0) or @pr)
 end
 
 if @pr.nil?
-  puts "commit '#{@commit}' not found in any PR"
+  puts "#{@search_type} '#{@value}' not found in any '#{@repo}' pull request"
 else
-  puts "commit '#{@commit}' was found in '#{@repo}' pull request ##{@pr["id"]}"
+  puts "#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@pr["id"]}"
 end
 
 
@@ -125,4 +139,5 @@ end
 # RESPONSE
 # ===================================
 #puts "Response: #{pull_requests}..."
+
 
