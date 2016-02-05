@@ -80,6 +80,10 @@ def call_stash_api(url, params)
   json_response
 end
 
+def pr_url(repo, pr)
+  "https://stash-prod2.us.jpmchase.net:8443/projects/RSAM/repos/#{repo}/pull-requests/#{pr["id"]}"
+end
+
 def get_prs(start)
   url = "#{BASE_URL}/#{@repo}/pull-requests"
   params = {'state' => 'MERGED', 'order' => 'NEWEST', 'limit' => NUM_RESULTS_AT_A_TIME, 'start' =>  start}
@@ -95,12 +99,19 @@ end
 
 def pr_containing_commit(pull_requests, commit_hash)
   pull_requests.each do |pr|
+    #binding.pry if pr["id"] == 24
     puts "checking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     commits = get_commits_in_pr(pr["id"])
     commits_containing_hash = commits.select{|c| c["id"].start_with? commit_hash}
-    return pr if commits_containing_hash.first # .first will be nil if array is empty
+    @found = pr if commits_containing_hash.first # .first will be nil if array is empty
   end
-  nil
+
+  if @found
+    url = pr_url(@repo, @found)
+    puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@found["id"]}"
+    puts "#{url}\n\n"
+  end
+  @found
 end
 
 def get_comments_in_pr(pr_id)
@@ -117,10 +128,16 @@ def pr_containing_comment(pull_requests, comment_text)
     puts "checking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     comments = get_comments_in_pr(pr["id"])
     #binding.pry if pr["id"] == 25
-    return pr if comments.any?{|c| c.include? comment_text}
+    @found = pr if comments.any?{|c| c.include? comment_text}
     # TODO do I really want to just find the FIRST one, or returna  list of ones?
   end
-  nil
+
+  if @found
+    url = pr_url(@repo, @found)
+    puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@found["id"]}"
+    puts "#{url}\n\n"
+  end
+  @found
 end
 
 
@@ -152,13 +169,9 @@ end
   break if ((pull_requests["size"] == 0) or @pr)
 end
 
-if @pr.nil?
-  puts "#{@search_type} '#{@value}' not found in any '#{@repo}' pull request"
-else
-  # https://stash-prod2.us.jpmchase.net:8443/projects/RSAM/repos/keon-api/pull-requests/25
-  pr_url = "https://stash-prod2.us.jpmchase.net:8443/projects/RSAM/repos/#{@repo}/pull-requests/#{@pr["id"]}"
-  puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@pr["id"]}\n#{pr_url}\n\n"
-end
+
+puts "#{@search_type} '#{@value}' not found in any '#{@repo}' pull request" if @pr.nil?
+
 
 
 # ===================================
