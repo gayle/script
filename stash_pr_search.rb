@@ -133,16 +133,15 @@ def pr_containing_comment(pull_requests, comment_text)
     print "\rchecking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     comments = get_comments_in_pr(pr["id"])
     @found = pr if comments.any?{|c| c.include? comment_text}
-    break if @found
-    # TODO do I really want to just find the FIRST one, or returna  list of ones?
+
+    if @found
+      url = pr_url(@repo, @found)
+      puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@found["id"]}"
+      puts "#{url}\n\n"
+    end
   end
 
-  if @found
-    url = pr_url(@repo, @found)
-    puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@found["id"]}"
-    puts "#{url}\n\n"
-  end
-  @found
+  @found # will return nil if none were ever found
 end
 
 
@@ -161,7 +160,7 @@ end
 # end until keep_going != "y"
 
 
-# Note in Ruby 2 you can use: "1.step(NUM_RESULTS_AT_A_TIME) do |i|" because infinity is the default
+# Note in Ruby 2 you can use: "1.step(NUM_RESULTS_AT_A_TIME) do |f|" because infinity is the default
 0.step(Float::INFINITY, NUM_RESULTS_AT_A_TIME) do |f|
   pull_requests = get_prs(f.to_i)
 
@@ -174,13 +173,4 @@ end
   break if ((pull_requests["size"] == 0) or @pr)
 end
 
-
-puts "#{@search_type} '#{@value}' not found in any '#{@repo}' pull request" if @pr.nil?
-
-
-
-# ===================================
-# RESPONSE
-# ===================================
-#puts "Response: #{pull_requests}..."
-
+puts "\n\n#{@search_type} '#{@value}' not found in any '#{@repo}' pull request" if @pr.nil?
