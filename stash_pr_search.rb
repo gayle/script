@@ -1,13 +1,14 @@
 # ===================================
 # USAGE:
 # ruby stash_pr_search.rb # you will be prompted for information
-# ruby stash_pr_search.rb <repo> <text|commit> <value> # this searches text in comments, description, title, etc.
+# ruby stash_pr_search.rb <repo> <text|commit|activity> <value>
 # repo = rsam|self_service|rsam_core, etc
 #
 # EXAMPLES:
-# ruby stash_pr_search.rb rsam text 'this is what I had to say'
+# ruby stash_pr_search.rb rsam text 'this is what I had to say' # searches text in comments, description, title, etc.
 # ruby stash_pr_search.rb keon-api commit 545dab7e4ef099ccb2c469eb0f148b16d3e8abff
 # ruby stash_pr_search.rb self_service commit ef0c9ebd3f
+# ruby stash_pr_search.rb rsam activity 2161  # the value is the PR ID
 # ===================================
 
 
@@ -46,14 +47,14 @@ else
   print "which repo do you want to look in? "
   @repo = gets.chomp
 
-  print "what do you want to search for (commit|text)? "
+  print "what do you want to search for (commit|text|activity)? "
   @search_type = gets.chomp
 
   print "what value are you looking for? "
   @value = gets.chomp
 end
 
-if !["commit", "text"].include? @search_type
+if !["commit", "text", "activity"].include? @search_type
   puts "unknown search type '#{@search_type}'"
   exit
 end
@@ -89,6 +90,25 @@ def get_prs(start)
   call_stash_api(url, params)
 end
 
+def display_date(date)
+  Time.at date/1000
+end
+
+# [11] pry(main)> activities["values"].map{|v| v["action"]}
+# => ["MERGED", "APPROVED", "APPROVED", "COMMENTED", "COMMENTED", "COMMENTED", "COMMENTED", "OPENED"]
+def activities_by_type(activities, activity_type)
+  activities.empty? ? {} : activities["values"].select{|a| a["action"] == activity_type}
+end
+
+# ===================================
+# ACTIVITY
+# ===================================
+def get_activities(pr_id)
+  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/activities"
+  params = {}
+  activities = call_stash_api(url, params)
+end
+
 # ===================================
 # COMMITS
 # ===================================
@@ -102,7 +122,7 @@ end
 def pr_containing_commit(pull_requests, commit_hash)
   found = nil
   pull_requests.each do |pr|
-    print "\rchecking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
+    print "\rchecking PR ##{pr["id"]} created on #{display_date(pr["createdDate"])}"
     commits = get_commits_in_pr(pr["id"])
     commits_containing_hash = commits.select{|c| c["id"].start_with? commit_hash}
     found = pr if commits_containing_hash.first # .first will be nil if array is empty
@@ -122,10 +142,8 @@ end
 # TEXT
 # ===================================
 def get_comments_in_pr(pr_id)
-  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/activities"
-  params = {}
-  activities = call_stash_api(url, params)
-  comment_activities = activities.empty? ? {} : activities["values"].select{|a| a["action"] == "COMMENTED"}
+  activities = get_activities(pr_id)
+  comment_activities = activities_by_type(activities, "COMMENTED") # activities.empty? ? {} : activities["values"].select{|a| a["action"] == "COMMENTED"}
   comment_activities.collect{|c| c["comment"]["text"]}
 end
 
@@ -140,7 +158,7 @@ def pr_containing_text(pull_requests, text)
 
   pull_requests.each do |pr|
     found = nil
-    print "\rchecking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
+    print "\rchecking PR ##{pr["id"]} created on #{display_date(pr["createdDate"])}"
     comments = get_comments_in_pr(pr["id"])
     other_text = get_pr_text(pr["id"])
     found = pr if (comments+other_text).any?{|c| c.include? text}
@@ -170,6 +188,24 @@ end
 #   keep_going = gets.chomp
 # end until keep_going != "y"
 
+
+if @search_type == "activity"
+  activities = get_activities(@value)
+
+  opened_activity = activities_by_type(activities, "OPENED").first
+  if opened_activity
+    puts "#{opened_activity["action"]} by #{opened_activity["user"]["displayName"]} at #{display_date(opened_activity["createdDate"])}"
+  end
+
+  merged_activity = activities_by_type(activities, "MERGED").first
+  if merged_activity
+    puts "#{merged_activity["action"]} by #{merged_activity["user"]["displayName"]} at #{display_date(merged_activity["changeset"]["authorTimestamp"])}"
+  end
+
+  # TODO can add more activities here if we want to later
+
+  exit(0)
+end
 
 # Note in Ruby 2 you can use: "1.step(NUM_RESULTS_AT_A_TIME) do |f|" because infinity is the default
 0.step(Float::INFINITY, NUM_RESULTS_AT_A_TIME) do |f|
