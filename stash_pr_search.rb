@@ -100,20 +100,21 @@ def get_commits_in_pr(pr_id)
 end
 
 def pr_containing_commit(pull_requests, commit_hash)
+  found = nil
   pull_requests.each do |pr|
     print "\rchecking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     commits = get_commits_in_pr(pr["id"])
     commits_containing_hash = commits.select{|c| c["id"].start_with? commit_hash}
-    @found = pr if commits_containing_hash.first # .first will be nil if array is empty
-    break if @found
+    found = pr if commits_containing_hash.first # .first will be nil if array is empty
+    break if found
   end
 
-  if @found
-    url = pr_url(@repo, @found)
-    puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{@found["id"]}"
+  if found
+    url = pr_url(@repo, found)
+    puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{found["id"]}"
     puts "#{url}\n\n"
   end
-  @found
+  found
 end
 
 
