@@ -1,11 +1,11 @@
 # ===================================
 # USAGE:
 # ruby stash_pr_search.rb # you will be prompted for information
-# ruby stash_pr_search.rb <repo> <comment|commit> <value>
+# ruby stash_pr_search.rb <repo> <text|commit> <value> # this searches text in comments, description, title, etc.
 # repo = rsam|self_service|rsam_core, etc
 #
 # EXAMPLES:
-# ruby stash_pr_search.rb rsam comment 'this is what I had to say'
+# ruby stash_pr_search.rb rsam text 'this is what I had to say'
 # ruby stash_pr_search.rb keon-api commit 545dab7e4ef099ccb2c469eb0f148b16d3e8abff
 # ruby stash_pr_search.rb self_service commit ef0c9ebd3f
 # ===================================
@@ -46,14 +46,14 @@ else
   print "which repo do you want to look in? "
   @repo = gets.chomp
 
-  print "what do you want to search for (commit|comment)? "
+  print "what do you want to search for (commit|text)? "
   @search_type = gets.chomp
 
   print "what value are you looking for? "
   @value = gets.chomp
 end
 
-if !["commit", "comment"].include? @search_type
+if !["commit", "text"].include? @search_type
   puts "unknown search type '#{@search_type}'"
   exit
 end
@@ -119,7 +119,7 @@ end
 
 
 # ===================================
-# COMMENTS
+# TEXT
 # ===================================
 def get_comments_in_pr(pr_id)
   url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/activities"
@@ -129,14 +129,21 @@ def get_comments_in_pr(pr_id)
   comment_activities.collect{|c| c["comment"]["text"]}
 end
 
-def pr_containing_comment(pull_requests, comment_text)
+def get_pr_text(pr_id)
+  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}"
+  pr = call_stash_api(url, {})
+  [pr["description"], pr["title"]].compact
+end
+
+def pr_containing_text(pull_requests, text)
   any_found = nil
 
   pull_requests.each do |pr|
     found = nil
     print "\rchecking PR ##{pr["id"]} created on #{Time.at pr["createdDate"]/1000}"
     comments = get_comments_in_pr(pr["id"])
-    found = pr if comments.any?{|c| c.include? comment_text}
+    other_text = get_pr_text(pr["id"])
+    found = pr if (comments+other_text).any?{|c| c.include? text}
     if found
       any_found = pr
       url = pr_url(@repo, found)
@@ -170,8 +177,8 @@ end
 
   if @search_type == "commit"
     @pr = pr_containing_commit(pull_requests["values"], @value)
-  elsif @search_type == "comment"
-    @pr = pr_containing_comment(pull_requests["values"], @value)
+  elsif @search_type == "text"
+    @pr = pr_containing_text(pull_requests["values"], @value)
   end
 
   break if (pull_requests["size"] == 0)
