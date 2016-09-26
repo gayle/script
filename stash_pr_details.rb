@@ -39,7 +39,7 @@ end
 # ===================================
 if ARGV.length == 2
   @repo = ARGV[0]
-  @pr_number = ARGV[1]
+  @pr_number = ARGV[1].to_i
 else
   print "which repo do you want to look in? "
   @repo = gets.chomp
@@ -74,20 +74,8 @@ def pr_url(repo, pr)
   "https://stash-prod2.us.jpmchase.net:8443/projects/RSAM/repos/#{repo}/pull-requests/#{pr["id"]}"
 end
 
-def get_pr(id)
-  url = "#{BASE_URL}/#{@repo}/pull-requests"
-  params = {'pullRequestId' => id}
-  call_stash_api(url, params)
-end
-
 def display_date(date)
   Time.at date/1000
-end
-
-# [11] pry(main)> activities["values"].map{|v| v["action"]}
-# => ["MERGED", "APPROVED", "APPROVED", "COMMENTED", "COMMENTED", "COMMENTED", "COMMENTED", "OPENED"]
-def activities_by_type(activities, activity_type)
-  activities.empty? ? {} : activities["values"].select{|a| a["action"] == activity_type}
 end
 
 # ===================================
@@ -99,83 +87,25 @@ def get_activities(pr_id)
   activities = call_stash_api(url, params)
 end
 
-# ===================================
-# COMMITS
-# ===================================
-def get_commits_in_pr(pr_id)
-  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/commits"
-  params = {}
-  commits = call_stash_api(url, params)
-  commits["values"]
-end
-
-def pr_containing_commit(pull_requests, commit_hash)
-  found = nil
-  pull_requests.each do |pr|
-    print "\rchecking PR ##{pr["id"]} created on #{display_date(pr["createdDate"])}"
-    commits = get_commits_in_pr(pr["id"])
-    commits_containing_hash = commits.select{|c| c["id"].start_with? commit_hash}
-    found = pr if commits_containing_hash.first # .first will be nil if array is empty
-    break if found
-  end
-
-  if found
-    url = pr_url(@repo, found)
-    puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{found["id"]}"
-    puts "#{url}\n\n"
-  end
-  found
-end
-
-
-# ===================================
-# TEXT
-# ===================================
-def get_comments_in_pr(pr_id)
+# [11] pry(main)> activities["values"].map{|v| v["action"]}
+# => ["MERGED", "APPROVED", "APPROVED", "COMMENTED", "COMMENTED", "COMMENTED", "COMMENTED", "OPENED"]
+def activities_by_types(pr_id, activity_types)
   activities = get_activities(pr_id)
-  comment_activities = activities_by_type(activities, "COMMENTED") # activities.empty? ? {} : activities["values"].select{|a| a["action"] == "COMMENTED"}
-  comment_activities.collect{|c| c["comment"]["text"]}
-end
-
-def get_pr_text(pr_id)
-  url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}"
-  pr = call_stash_api(url, {})
-  [pr["description"], pr["title"]].compact
-end
-
-def pr_containing_text(pull_requests, text)
-  any_found = nil
-
-  pull_requests.each do |pr|
-    found = nil
-    print "\rchecking PR ##{pr["id"]} created on #{display_date(pr["createdDate"])}"
-    comments = get_comments_in_pr(pr["id"])
-    other_text = get_pr_text(pr["id"])
-    found = pr if (comments+other_text).any?{|c| c.include? text}
-    if found
-      any_found = pr
-      url = pr_url(@repo, found)
-      puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{found["id"]}"
-      puts "#{url}\n\n"
-    end
-  end
-
-  any_found # will return nil if none were ever found
+  activities.empty? ? {} : activities["values"].select{|a| activity_types.include? a["action"]}
 end
 
 
 # ===================================
 # RUN
 # ===================================
-  pull_requests = get_pr(f.to_i)
-
-  if @search_type == "commit"
-    @pr = pr_containing_commit(pull_requests["values"], @value)
-  elsif @search_type == "text"
-    @pr = pr_containing_text(pull_requests["values"], @value)
+  # TODO how to know when people are added to the PR
+  relevant_activities = activities_by_types(@pr_number, ["OPENED","APPROVED","COMMENTED","MERGED"])
+  if (relevant_activities.size == 0)
+    puts "Unable to find activities for pr '#{@pr_number}' in #{@repo} repo"
+    exit(0)
+  else
+    ordered_activities = relevant_activities.sort_by{|a| a["createdDate"] }
+    ordered_activities.each do |activity|
+      puts "#{display_date(activity["createdDate"])} #{activity["action"]} by #{activity["user"]["displayName"]} "
+    end
   end
-
-  break if (pull_requests["size"] == 0)
-
-
-puts "\n\n#{@search_type} '#{@value}' not found in any '#{@repo}' pull request" if @pr.nil?
