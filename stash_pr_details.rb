@@ -70,8 +70,13 @@ def call_stash_api(url, params)
   json_response
 end
 
-def pr_url(repo, pr)
-  "https://stash-prod2.us.jpmchase.net:8443/projects/RSAM/repos/#{repo}/pull-requests/#{pr["id"]}"
+def pr_url(repo, pr_id)
+  "#{BASE_URL}/#{repo}/pull-requests/#{pr_id}"
+end
+
+def get_pr(id)
+  url = pr_url(@repo, id)
+  call_stash_api(url, {})
 end
 
 def display_date(date)
@@ -99,6 +104,12 @@ end
 # RUN
 # ===================================
   # TODO how to know when people are added to the PR
+  pr = get_pr(@pr_number)
+  puts pr_url(@repo, @pr_number)
+  puts pr["title"]
+  puts pr["description"]
+  pr["author"]["user"]["displayName"]
+
   relevant_activities = activities_by_types(@pr_number, ["OPENED","APPROVED","COMMENTED","MERGED"])
   if (relevant_activities.size == 0)
     puts "Unable to find activities for pr '#{@pr_number}' in #{@repo} repo"
