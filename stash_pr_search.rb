@@ -11,6 +11,7 @@
 # ruby stash_pr_search.rb rsam activity 2161  # the value is the PR ID
 # ===================================
 
+# TODO have text search also search commit comments
 
 require 'json'
 require 'net/http'
@@ -65,14 +66,12 @@ end
 
 
 if @search_type == "activity"
-  activities = get_activities(@value)
-
-  opened_activity = activities_by_type(activities, "OPENED").first
+  opened_activity = activities_by_types(@value, ["OPENED"]).first
   if opened_activity
     puts "#{opened_activity["action"]} by #{opened_activity["user"]["displayName"]} at #{display_date(opened_activity["createdDate"])}"
   end
 
-  merged_activity = activities_by_type(activities, "MERGED").first
+  merged_activity = activities_by_types(@value, ["MERGED"]).first
   if merged_activity
     puts "#{merged_activity["action"]} by #{merged_activity["user"]["displayName"]} at #{display_date(merged_activity["changeset"]["authorTimestamp"])}"
   end

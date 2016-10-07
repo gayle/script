@@ -63,17 +63,9 @@ module StashHelpers
 
   # [11] pry(main)> activities["values"].map{|v| v["action"]}
   # => ["MERGED", "APPROVED", "APPROVED", "COMMENTED", "COMMENTED", "COMMENTED", "COMMENTED", "OPENED"]
-  def activities_by_type(activities, activity_type)
-    activities.empty? ? {} : activities["values"].select{|a| a["action"] == activity_type}
-  end
-
-  # TODO consolidate these methods
-
-  # [11] pry(main)> activities["values"].map{|v| v["action"]}
-  # => ["MERGED", "APPROVED", "APPROVED", "COMMENTED", "COMMENTED", "COMMENTED", "COMMENTED", "OPENED"]
   def activities_by_types(pr_id, activity_types)
-    activities = get_activities(pr_id)
-    activities.empty? ? {} : activities["values"].select{|a| activity_types.include? a["action"]}
+    @activities ||= get_activities(pr_id)
+    @activities.empty? ? {} : @activities["values"].select{|a| activity_types.include? a["action"]}
   end
 
   # ===================================
@@ -111,8 +103,7 @@ module StashHelpers
   # TEXT
   # ===================================
   def get_comments_in_pr(pr_id)
-    activities = get_activities(pr_id)
-    comment_activities = activities_by_type(activities, "COMMENTED") # activities.empty? ? {} : activities["values"].select{|a| a["action"] == "COMMENTED"}
+    comment_activities = activities_by_types(pr_id, ["COMMENTED"])
     comment_activities.collect{|c| c["comment"]["text"]}
   end
 
@@ -133,9 +124,8 @@ module StashHelpers
       found = pr if (comments+other_text).any?{|c| c.include? text}
       if found
         any_found = pr
-        url = pr_url(@repo, found)
         puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{found["id"]}"
-        puts "#{url}\n\n"
+        puts "#{pr_url(@repo, found["id"])}\n\n"
       end
     end
 
