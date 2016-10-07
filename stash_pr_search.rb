@@ -11,8 +11,6 @@
 # ruby stash_pr_search.rb rsam activity 2161  # the value is the PR ID
 # ===================================
 
-# TODO have text search also search commit comments
-
 require 'json'
 require 'net/http'
 require 'pry'

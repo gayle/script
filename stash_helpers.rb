@@ -107,6 +107,12 @@ module StashHelpers
     comment_activities.collect{|c| c["comment"]["text"]}
   end
 
+  def get_commit_messages_in_pr(pr_id)
+    url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/commits"
+    commits = call_stash_api(url, {})
+    commits["values"].map{|v| v["message"]}
+  end
+
   def get_pr_text(pr_id)
     url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}"
     pr = call_stash_api(url, {})
@@ -120,8 +126,9 @@ module StashHelpers
       found = nil
       print "\rchecking PR ##{pr["id"]} created on #{display_date(pr["createdDate"])}"
       comments = get_comments_in_pr(pr["id"])
+      commit_messages = get_commit_messages_in_pr(pr["id"])
       other_text = get_pr_text(pr["id"])
-      found = pr if (comments+other_text).any?{|c| c.include? text}
+      found = pr if (comments+commit_messages+other_text).any?{|c| c.include? text}
       if found
         any_found = pr
         puts "\n#{@search_type} '#{@value}' was found in '#{@repo}' pull request ##{found["id"]}"
