@@ -34,13 +34,13 @@ if ARGV.length == 3
   @value = ARGV[2]
 else
   print "which repo do you want to look in? "
-  @repo = gets.chomp
+  @repo = gets.strip
 
   print "what do you want to search for (commit|text|activity)? "
-  @search_type = gets.chomp
+  @search_type = gets.strip
 
   print "what value are you looking for? "
-  @value = gets.chomp
+  @value = gets.strip
 end
 
 if !["commit", "text", "activity"].include? @search_type
