@@ -1,4 +1,4 @@
-module StashHelpers
+module PrHelpers
   # ===================================
   # CONSTANTS
   # ===================================
@@ -15,7 +15,7 @@ module StashHelpers
   # ===================================
   # HELPERS
   # ===================================
-  def call_stash_api(url, params)
+  def call_api(url, params)
     uri = URI(url)
     uri.query = URI.encode_www_form(params)
     req = Net::HTTP::Get.new(uri.request_uri, {'Content-Type' => 'application/json', })
@@ -39,13 +39,13 @@ module StashHelpers
 
   def get_pr(id)
     url = pr_url(@repo, id)
-    call_stash_api(url, {})
+    call_api(url, {})
   end
 
   def get_prs(start)
     url = "#{BASE_URL}/#{@repo}/pull-requests"
     params = {'state' => 'MERGED', 'order' => 'NEWEST', 'limit' => NUM_RESULTS_AT_A_TIME, 'start' =>  start}
-    call_stash_api(url, params)
+    call_api(url, params)
   end
 
   def display_date(date)
@@ -58,7 +58,7 @@ module StashHelpers
   def get_activities(pr_id)
     url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/activities"
     params = {}
-    activities = call_stash_api(url, params)
+    activities = call_api(url, params)
   end
 
   # [11] pry(main)> activities["values"].map{|v| v["action"]}
@@ -74,7 +74,7 @@ module StashHelpers
   def get_commits_in_pr(pr_id)
     url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/commits"
     params = {}
-    commits = call_stash_api(url, params)
+    commits = call_api(url, params)
     commits["values"]
   end
 
@@ -109,13 +109,13 @@ module StashHelpers
 
   def get_commit_messages_in_pr(pr_id)
     url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}/commits"
-    commits = call_stash_api(url, {})
+    commits = call_api(url, {})
     commits["values"].map{|v| v["message"]}
   end
 
   def get_pr_text(pr_id)
     url = "#{BASE_URL}/#{@repo}/pull-requests/#{pr_id}"
-    pr = call_stash_api(url, {})
+    pr = call_api(url, {})
     [pr["description"], pr["title"]].compact
   end
 

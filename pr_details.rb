@@ -1,20 +1,20 @@
 # ===================================
 # USAGE:
-# ruby stash_pr_details.rb # you will be prompted for information
-# ruby stash_pr_search.rb <repo> <pr number>
+# ruby pr_details.rb # you will be prompted for information
+# ruby pr_details.rb <repo> <pr number>
 # repo = rsam|self_service|rsam_core, etc
 #
 # EXAMPLES:
-# ruby stash_pr_search.rb
-# ruby stash_pr_search.rb rsam 2354
+# ruby pr_details.rb
+# ruby pr_details.rb rsam 2354
 # ===================================
 # https://developer.atlassian.com/static/rest/stash/3.11.3/stash-rest.html
 
 require 'json'
 require 'net/http'
 require 'pry'
-require './stash_helpers'
-include StashHelpers
+require './pr_helpers'
+include PrHelpers
 
 if USERNAME.nil?
   puts "ENV variable USERNAME is nil"

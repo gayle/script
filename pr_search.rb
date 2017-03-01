@@ -1,21 +1,21 @@
 # ===================================
 # USAGE:
-# ruby stash_pr_search.rb # you will be prompted for information
-# ruby stash_pr_search.rb <repo> <text|commit|activity> <value>
+# ruby pr_search.rb # you will be prompted for information
+# ruby pr_search.rb <repo> <text|commit|activity> <value>
 # repo = rsam|self_service|rsam_core, etc
 #
 # EXAMPLES:
-# ruby stash_pr_search.rb rsam text 'this is what I had to say' # searches text in comments, description, title, etc.
-# ruby stash_pr_search.rb keon-api commit 545dab7e4ef099ccb2c469eb0f148b16d3e8abff
-# ruby stash_pr_search.rb self_service commit ef0c9ebd3f
-# ruby stash_pr_search.rb rsam activity 2161  # the value is the PR ID
+# ruby pr_search.rb rsam text 'this is what I had to say' # searches text in comments, description, title, etc.
+# ruby pr_search.rb keon-api commit 545dab7e4ef099ccb2c469eb0f148b16d3e8abff
+# ruby pr_search.rb self_service commit ef0c9ebd3f
+# ruby pr_search.rb rsam activity 2161  # the value is the PR ID
 # ===================================
 
 require 'json'
 require 'net/http'
 require 'pry'
-require './stash_helpers'
-include StashHelpers
+require './pr_helpers'
+include PrHelpers
 
 if USERNAME.nil?
   puts "ENV variable USERNAME is nil"
