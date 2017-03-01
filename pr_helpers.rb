@@ -1,8 +1,10 @@
+# https://developer.atlassian.com/bitbucket/server/docs/latest/how-tos/command-line-rest.html
+# Make sure to include the host in the $no_proxy
 module PrHelpers
   # ===================================
   # CONSTANTS
   # ===================================
-  BASE_URL = 'https://stash-prod2.us.jpmchase.net:8443/rest/api/1.0/projects/RSAM/repos'
+  BASE_URL = 'https://bitbucketdc.jpmchase.net/rest/api/1.0/projects/RSAMBB/repos'
   NUM_RESULTS_AT_A_TIME = 10
 
   # ===================================
