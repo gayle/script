@@ -14,9 +14,13 @@ south_data = Nokogiri::HTML(south_cafe)
 DAYS.each do |day|
   FOODS_I_WANT.each do |food|
     north_food = north_data.css("##{day}Column").text
-    puts "#{day.capitalize}, NORTH has #{food}" if north_food.match food
+    message = "#{day.capitalize}, NORTH has #{food.to_s.gsub("?i-mx:","")}"
+    puts message if north_food.match food
+    Kernel.system( "notify-send '#{message}'") if north_food.match food
 
     south_food = south_data.css("##{day}Column").text
-    puts "#{day.capitalize}, SOUTH has #{food}" if south_food.match food
+    message = "#{day.capitalize}, SOUTH has #{food.to_s.gsub("?i-mx:","")}"
+    puts message if south_food.match food
+    Kernel.system( "notify-send '#{message}'") if south_food.match food
   end
 end
