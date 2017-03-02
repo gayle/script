@@ -4,7 +4,7 @@ require 'httparty'
 require 'nokogiri'
 
 DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday"]
-FOODS_I_WANT = [/PUMPKIN COCONUT BISQUE/i, /NACHO/i, /WURST.*BIER/i]
+FOODS_I_WANT = [/PUMPKIN COCONUT BISQUE/i, /NACHO/i, /WURST.*BIER/i, /BACON/i]
 north_cafe = HTTParty.get("http://www.aramarkcafe.com/layouts/canary_2015/locationhome.aspx?locationid=4261&pageid=20&stationID=-1")
 south_cafe = HTTParty.get("http://www.aramarkcafe.com/layouts/canary_2015/locationhome.aspx?locationid=4265&pageid=20&stationID=-1")
 
