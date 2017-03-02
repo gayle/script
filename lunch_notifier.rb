@@ -6,6 +6,7 @@ require 'json'
 require 'pry'
 require 'csv'
 
+FOODS_I_WANT = ["PUMPKIN COCONUT BISQUE", "NACHO"]
 south_cafe = HTTParty.get("http://www.aramarkcafe.com/layouts/canary_2015/locationhome.aspx?locationid=4265&pageid=20&stationID=-1")
 north_cafe = HTTParty.get("http://www.aramarkcafe.com/layouts/canary_2015/locationhome.aspx?locationid=4261&pageid=20&stationID=-1")
 
@@ -16,10 +17,11 @@ north_wed = north_data.css("#wednesdayColumn").text
 north_thu = north_data.css("#thursdayColumn").text
 north_fri = north_data.css("#fridayColumn").text
 
-puts "MON WOOT" if north_mon.match /pumpkin/i
-puts "TUE WOOT" if north_tue.match /pumpkin/i
-puts "WED WOOT" if north_wed.match /pumpkin/i
-puts "THU WOOT" if north_thu.match /pumpkin/i
-puts "FRI WOOT" if north_fri.match /pumpkin/i
 
-
+FOODS_I_WANT.each do |food|
+  puts "Mon, NORTH has #{food}" if north_mon.match /#{food}/i
+  puts "Tue, NORTH has #{food}" if north_tue.match /#{food}/i
+  puts "Wed, NORTH has #{food}" if north_wed.match /#{food}/i
+  puts "Thu, NORTH has #{food}" if north_thu.match /#{food}/i
+  puts "Fri, NORTH has #{food}" if north_fri.match /#{food}/i
+end
