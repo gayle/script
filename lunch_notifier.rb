@@ -2,9 +2,6 @@
 # or you could use notify-send to just popup an alert
 require 'httparty'
 require 'nokogiri'
-require 'json'
-require 'pry'
-require 'csv'
 
 FOODS_I_WANT = [/PUMPKIN COCONUT BISQUE/i, /NACHO/i, /WURST.*BIER/i]
 north_cafe = HTTParty.get("http://www.aramarkcafe.com/layouts/canary_2015/locationhome.aspx?locationid=4261&pageid=20&stationID=-1")
