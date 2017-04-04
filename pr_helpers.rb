@@ -36,7 +36,7 @@ module PrHelpers
   end
 
   def pr_url(repo, pr_id)
-    "https://stash-prod2.us.jpmchase.net:8443/projects/RSAM/repos/#{repo}/pull-requests/#{pr_id}"
+    "https://bitbucketdc.jpmchase.net:8443/projects/RSAMBB/repos/#{repo}/pull-requests/#{pr_id}"
   end
 
   def get_pr(id)
