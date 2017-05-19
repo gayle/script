@@ -6,7 +6,7 @@ require 'nokogiri'
 DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday"]
 FOODS_I_WANT = [
     /PUMPKIN COCONUT BISQUE/i,
-    /NACHO/i,
+    /NACHO BAR/i,
     /WURST.*BIER/i,
     /Build your own Soft Tacos or Nachos/i,
     /Broccoli Cheddar Soup/i,
