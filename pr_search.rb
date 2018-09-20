@@ -82,6 +82,7 @@ end
 # Note in Ruby 2 you can use: "1.step(NUM_RESULTS_AT_A_TIME) do |f|" because infinity is the default
 0.step(Float::INFINITY, NUM_RESULTS_AT_A_TIME) do |f|
   pull_requests = get_prs(f.to_i)
+  break if (pull_requests["size"] == 0)
 
   if @search_type == "commit"
     @pr = pr_containing_commit(pull_requests["values"], @value)
@@ -89,7 +90,7 @@ end
     @pr = pr_containing_text(pull_requests["values"], @value)
   end
 
-  break if (pull_requests["size"] == 0)
+  break if @pr.present?
 end
 
 puts "\n\n#{@search_type} '#{@value}' not found in any '#{@repo}' pull request" if @pr.nil?
