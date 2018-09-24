@@ -90,7 +90,7 @@ end
     @pr = pr_containing_text(pull_requests["values"], @value)
   end
 
-  break if @pr.present?
+  break if !@pr.nil?
 end
 
 puts "\n\n#{@search_type} '#{@value}' not found in any '#{@repo}' pull request" if @pr.nil?
